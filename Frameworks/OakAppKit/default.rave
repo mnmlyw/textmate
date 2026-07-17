@@ -4,8 +4,12 @@ target "${dirname}" {
 
 	files resources/* gfx/CloseButton/*.png "Resources"
 
-	sources src/*.{cc,mm}
+	sources src/*.{cc,mm,swift}
 	cxx_tests tests/gui_*.mm
 	frameworks Carbon Cocoa AudioToolbox Quartz
 	libraries sqlite3
+
+	capture SWIFT_TOOLCHAIN_LIBDIR "dirname \"$(xcrun --sdk macosx --find swiftc)\""
+	add LN_FLAGS "-L/usr/lib/swift"
+	add LN_FLAGS "-L'${SWIFT_TOOLCHAIN_LIBDIR}/../lib/swift/macosx'"
 }
