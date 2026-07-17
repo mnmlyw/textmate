@@ -132,7 +132,7 @@ static NSMutableIndexSet* MutableLongestCommonSubsequence (NSArray* lhs, NSArray
 
 + (void)initialize
 {
-	[NSApplication.sharedApplication registerServicesMenuSendTypes:@[ NSFilenamesPboardType, NSURLPboardType ] returnTypes:@[ ]];
+	[NSApplication.sharedApplication registerServicesMenuSendTypes:@[ NSPasteboardTypeFileURL, NSPasteboardTypeURL ] returnTypes:@[ ]];
 
 	[NSUserDefaults.standardUserDefaults registerDefaults:@{
 		kUserDefaultsFoldersOnTopKey: [[[NSUserDefaults alloc] initWithSuiteName:@"com.apple.finder"] objectForKey:@"_FXSortFoldersFirst"] ?: @NO,
@@ -436,7 +436,7 @@ static NSMutableIndexSet* MutableLongestCommonSubsequence (NSArray* lhs, NSArray
 		[NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:[itemsToShowInFinder valueForKeyPath:@"URL"]];
 
 	for(FileItem* item in itemsToOpen)
-		[NSWorkspace.sharedWorkspace openFile:item.resolvedURL.path];
+		[NSWorkspace.sharedWorkspace openURL:item.resolvedURL];
 
 	if(itemsToOpenInTextMate.count > 0)
 		[self.delegate fileBrowser:self openURLs:[itemsToOpenInTextMate valueForKeyPath:@"URL"]];
@@ -1169,7 +1169,7 @@ static NSMutableIndexSet* MutableLongestCommonSubsequence (NSArray* lhs, NSArray
 
 - (id)sessionState
 {
-	if(NSKeyedArchiver* coder = [[NSKeyedArchiver alloc] init])
+	if(NSKeyedArchiver* coder = [[NSKeyedArchiver alloc] initRequiringSecureCoding:NO])
 	{
 		[self encodeRestorableStateWithCoder:coder];
 		[coder finishEncoding];
@@ -1182,7 +1182,7 @@ static NSMutableIndexSet* MutableLongestCommonSubsequence (NSArray* lhs, NSArray
 {
 	if([state isKindOfClass:[NSData class]])
 	{
-		if(NSCoder* coder = [[NSKeyedUnarchiver alloc] initForReadingWithData:state])
+		if(NSCoder* coder = [[NSKeyedUnarchiver alloc] initForReadingFromData:state error:nil])
 			[self restoreStateWithCoder:coder];
 	}
 	else if([state isKindOfClass:[NSDictionary class]])
@@ -2218,7 +2218,7 @@ static NSMutableIndexSet* MutableLongestCommonSubsequence (NSArray* lhs, NSArray
 
 - (id)validRequestorForSendType:(NSString*)sendType returnType:(NSString*)returnType
 {
-	return returnType == nil && sendType != nil && [@[ NSFilenamesPboardType, NSURLPboardType ] containsObject:sendType] ? self : nil;
+	return returnType == nil && sendType != nil && [@[ NSPasteboardTypeFileURL, NSPasteboardTypeURL ] containsObject:sendType] ? self : nil;
 }
 
 - (BOOL)writeSelectionToPasteboard:(NSPasteboard*)pboard types:(NSArray*)types
@@ -2235,6 +2235,18 @@ static NSMutableIndexSet* MutableLongestCommonSubsequence (NSArray* lhs, NSArray
 // = Accepting Drops =
 // ===================
 
+static NSArray<NSString*>* OakFilePathsFromPasteboard (NSPasteboard* pboard)
+{
+	NSArray<NSURL*>* urls = [pboard readObjectsForClasses:@[ NSURL.class ] options:@{ NSPasteboardURLReadingFileURLsOnlyKey: @YES }];
+	if(urls.count == 0)
+		return nil;
+
+	NSMutableArray<NSString*>* paths = [NSMutableArray arrayWithCapacity:urls.count];
+	for(NSURL* url in urls)
+		[paths addObject:url.path];
+	return paths;
+}
+
 - (NSDragOperation)outlineView:(NSOutlineView*)outlineView validateDrop:(id <NSDraggingInfo>)info proposedItem:(FileItem*)item proposedChildIndex:(NSInteger)childIndex
 {
 	NSURL* dropURL = (item ?: self.fileItem).resolvedURL.filePathURL;
@@ -2242,7 +2254,7 @@ static NSMutableIndexSet* MutableLongestCommonSubsequence (NSArray* lhs, NSArray
 		return NSDragOperationNone;
 
 	NSPasteboard* pboard  = info.draggingPasteboard;
-	NSArray* draggedPaths = [pboard propertyListForType:NSFilenamesPboardType];
+	NSArray* draggedPaths = OakFilePathsFromPasteboard(pboard);
 
 	dev_t targetDevice   = path::device(dropURL.fileSystemRepresentation);
 	BOOL linkOperation   = (NSApp.currentEvent.modifierFlags & NSEventModifierFlagControl) == NSEventModifierFlagControl;

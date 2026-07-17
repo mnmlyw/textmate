@@ -3663,9 +3663,21 @@ static char const* kOakMenuItemTitle = "OakMenuItemTitle";
 
 + (NSArray*)dropTypes
 {
-	return @[ NSColorPboardType, NSFilenamesPboardType,
-		@"WebURLsWithTitlesPboardType", (NSString*)kUTTypeURL, @"public.url-name", NSURLPboardType,
+	return @[ NSPasteboardTypeColor, NSPasteboardTypeFileURL,
+		@"WebURLsWithTitlesPboardType", (NSString*)kUTTypeURL, @"public.url-name", NSPasteboardTypeURL,
 		NSPasteboardTypeString ];
+}
+
+static NSArray<NSString*>* OakFilePathsFromPasteboard (NSPasteboard* pboard)
+{
+	NSArray<NSURL*>* urls = [pboard readObjectsForClasses:@[ NSURL.class ] options:@{ NSPasteboardURLReadingFileURLsOnlyKey: @YES }];
+	if(urls.count == 0)
+		return nil;
+
+	NSMutableArray<NSString*>* paths = [NSMutableArray arrayWithCapacity:urls.count];
+	for(NSURL* url in urls)
+		[paths addObject:url.path];
+	return paths;
 }
 
 - (void)setDropMarkAtPoint:(NSPoint)aPoint
@@ -3797,7 +3809,7 @@ static char const* kOakMenuItemTitle = "OakMenuItemTitle";
 		BOOL hoveringSelection = [self isPointInSelection:[self convertPoint:[info draggingLocation] fromView:nil]];
 		res = hoveringSelection ? NSDragOperationNone : ((mask & NSDragOperationMove) ?: (mask & NSDragOperationCopy));
 	}
-	else if([[info draggingPasteboard] availableTypeFromArray:@[ NSFilenamesPboardType ]])
+	else if([[info draggingPasteboard] canReadObjectForClasses:@[ NSURL.class ] options:@{ NSPasteboardURLReadingFileURLsOnlyKey: @YES }])
 	{
 		res = (mask & NSDragOperationCopy) ?: (mask & NSDragOperationLink);
 	}
@@ -3844,7 +3856,7 @@ static char const* kOakMenuItemTitle = "OakMenuItemTitle";
 	ng::index_t pos = dropPosition;
 	documentView->set_drop_marker(dropPosition = ng::index_t());
 
-	NSArray* files = [pboard availableTypeFromArray:@[ NSFilenamesPboardType ]] ? [pboard propertyListForType:NSFilenamesPboardType] : nil;
+	NSArray* files = OakFilePathsFromPasteboard(pboard);
 	if(shouldLink && files)
 	{
 		std::vector<std::string> paths;
