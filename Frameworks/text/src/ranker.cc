@@ -14,41 +14,14 @@ static bool is_subset (std::string const& needle, std::string const& haystack)
 	return n == needle.size();
 }
 
-#ifndef NDEBUG
-static void print_matrix (size_t* matrix, size_t n, size_t m, std::string const& rowLabel, std::string const& colLabel)
-{
-	fprintf(stderr, "   |");
-	for(size_t j = 0; j < m; ++j)
-		fprintf(stderr, "%3c", colLabel[j]);
-	fprintf(stderr, "\n");
-
-	fprintf(stderr, "---+");
-	for(size_t j = 0; j < m; ++j)
-		fprintf(stderr, "---");
-	fprintf(stderr, "\n");
-
-	for(size_t i = 0; i < n; ++i)
-	{
-		fprintf(stderr, " %c |", rowLabel[i]);
-		for(size_t j = 0; j < m; ++j)
-		{
-			fprintf(stderr, "%3zu", matrix[i*m + j]);
-		}
-		fprintf(stderr, "\n");
-	}
-	fprintf(stderr, "\n");
-}
-#endif
 
 static double calculate_rank (std::string const& lhs, std::string const& rhs, std::vector< std::pair<size_t, size_t> >* out)
 {
 	size_t const n = lhs.size();
 	size_t const m = rhs.size();
-	size_t matrix[n][m], first[n], last[n];
-	bool capitals[m];
-	bzero(matrix, sizeof(matrix));
-	std::fill_n(&first[0], n, m);
-	std::fill_n(&last[0],  n, 0);
+	std::vector<std::vector<size_t>> matrix(n, std::vector<size_t>(m, 0));
+	std::vector<size_t> first(n, m), last(n, 0);
+	std::vector<bool> capitals(m);
 
 	bool at_bow = true;
 	for(size_t j = 0; j < m; ++j)
