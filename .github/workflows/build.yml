@@ -1,17 +1,17 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: macOS-latest
+    runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Setup
-      run: brew install boost capnp google-sparsehash multimarkdown ninja ragel
+      run: brew install capnp multimarkdown ninja ragel
     - name: Configure
       run: ./configure
     - name: Build
