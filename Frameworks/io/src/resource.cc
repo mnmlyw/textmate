@@ -13,9 +13,17 @@ namespace path
 		}
 		else if(CFURLRef url = CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, (UInt8 const*)path.data(), path.size(), false))
 		{
-			LSItemInfoRecord info;
-			if(noErr == LSCopyItemInfoForURL(url, kLSRequestTypeCreator, &info))
-				res = info.filetype == kClippingTextType;
+			CFTypeRef keys[] = { kCFURLTypeIdentifierKey };
+			if(CFArrayRef keysArray = CFArrayCreate(kCFAllocatorDefault, keys, 1, &kCFTypeArrayCallBacks))
+			{
+				if(CFDictionaryRef props = CFURLCopyResourcePropertiesForKeys(url, keysArray, nullptr))
+				{
+					if(CFStringRef uti = (CFStringRef)CFDictionaryGetValue(props, kCFURLTypeIdentifierKey))
+						res = CFStringCompare(uti, CFSTR("com.apple.finder.textclipping"), 0) == kCFCompareEqualTo;
+					CFRelease(props);
+				}
+				CFRelease(keysArray);
+			}
 			CFRelease(url);
 		}
 		return res;
