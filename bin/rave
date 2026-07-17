@@ -633,6 +633,36 @@ class CompileClang < Compiler
   end
 end
 
+class CompileSwift < Compiler
+  transforms '.swift' => '.o'
+
+  # Whole-module compilation is not supported: each .swift file is compiled
+  # separately and may not reference declarations from sibling .swift files.
+  # Objective-C code in the same target can import ‘${target}-Swift.h’.
+
+  def transform(file, config, builddir)
+    module_name = (config['target'] || File.basename(File.dirname(File.dirname(file)))).gsub(/[^A-Za-z0-9_]/, '_')
+
+    min_os = config['FLAGS'].to_s[/-mmacosx-version-min=([\d.]+)/, 1] || '11.0'
+    arch   = @@host_arch ||= %x{ uname -m }.chomp
+
+    info   = super
+    header = File.join(File.dirname(info[:out]), "#{module_name}-Swift.h")
+
+    flags = [ "-target #{arch}-apple-macos#{min_os}", "-module-name #{module_name}", "-emit-objc-header-path #{header.shellescape}" ]
+    flags << config['SWIFT_FLAGS'] if config.include?('SWIFT_FLAGS')
+
+    info.merge(
+      out:         [ info[:out], header ],
+      flags:       flags.join(' '),
+      command:     'xcrun --sdk macosx swiftc -c -parse-as-library $flags -o $out $in',
+      description: 'Swift ‘${in}’…',
+    )
+  end
+
+  @@host_arch = nil
+end
+
 class CompileRagel < Compiler
   transforms '.rl' => '.cc', '.mm.rl' => '.mm', '.cc.rl' => '.cc'
 
@@ -870,7 +900,7 @@ module Target
           non_sources.each do |file|
             if links = Compiler.transform(file, config, target[:builddir])
               generated_headers += links.map { |link| link[:out] }.flatten.select { |file| file.end_with?('.h', '.hpp') }
-              objects << links.last[:out]
+              objects << Array(links.last[:out]).first
               link = links.shift
               rules += [ link.merge(order_only: [ *Array(link[:order_only]) ]), *links ]
             end

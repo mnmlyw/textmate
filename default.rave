@@ -5,6 +5,7 @@ set C_FLAGS       "-std=c99"
 set CXX_FLAGS     "-std=c++23"
 set OBJC_FLAGS    "${C_FLAGS} -fobjc-abi-version=3 -fobjc-arc"
 set OBJCXX_FLAGS  "${OBJC_FLAGS} ${CXX_FLAGS} -fobjc-call-cxx-cdtors"
+set SWIFT_FLAGS   "-swift-version 5"
 
 add FLAGS         "-funsigned-char"
 add FLAGS         "-Wall -Wwrite-strings -Wformat -Winit-self -Wmissing-include-dirs"
@@ -28,6 +29,7 @@ prelude Shared/PCH/prelude.*
 libraries c++
 
 config debug {
+	add SWIFT_FLAGS "-Onone -g"
 	require OakDebug
 
 	add FLAGS    "-Os"
@@ -37,6 +39,7 @@ config debug {
 }
 
 config release {
+	add SWIFT_FLAGS "-O"
 	add FLAGS    "-Os -DNDEBUG -flto=thin"
 	add LN_FLAGS "-flto=thin -Wl,-cache_path_lto,'\\${builddir}/.cache'"
 	add LN_FLAGS "-Wl,-dead_strip -Wl,-dead_strip_dylibs"
