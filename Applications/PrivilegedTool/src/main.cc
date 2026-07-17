@@ -57,9 +57,9 @@ static int setup_socket ()
 	addr.sun_len = SUN_LEN(&addr);
 	int rc = bind(fd, (sockaddr*)&addr, sizeof(addr));
 	chmod(kAuthSocketPath, S_IRWXU|S_IRWXG|S_IRWXO);
-	assert(rc != -1);
+	assert(rc != -1); (void)rc;
 	rc = listen(fd, SOMAXCONN);
-	assert(rc != -1);
+	assert(rc != -1); (void)rc;
 
 	return fd;
 }
