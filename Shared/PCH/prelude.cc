@@ -19,10 +19,11 @@
 #include <vector>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <random>
 #include <thread>
-#include <boost/crc.hpp>
-#include <boost/variant.hpp>
-#include <sparsehash/dense_hash_map>
+#include <unordered_map>
+#include <utility>
+#include <variant>
 
 #endif /* end of include guard: PRELUDE_CC_PCH_U5CKEP2N */

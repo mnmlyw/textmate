@@ -26,6 +26,17 @@ namespace parser
 	struct case_change_t               { case_change_t (case_change::type type) : type(type) { } case_change::type type; };
 	struct code_t                      { std::string code; };
 
+	struct node_t : std::variant<
+		text_t,
+		placeholder_t, placeholder_transform_t, placeholder_choice_t,
+		variable_t, variable_transform_t, variable_fallback_t, variable_condition_t, variable_change_t,
+		case_change_t,
+		code_t
+	>
+	{
+		using variant::variant;
+	};
+
 	OnigOptionType convert (regexp_options::type const& options);
 
 	nodes_t parse_format_string (std::string const& str, char const* stopChars = "", size_t* length = nullptr);

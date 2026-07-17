@@ -22,21 +22,19 @@ Before you submit a bug report please read the [writing bug reports](https://git
 
 To build TextMate, you need the following:
 
- * [boost][]            — portable C++ source libraries
  * [Cap’n Proto][capnp] — serialization library
  * [multimarkdown][]    — marked-up plain text compiler
  * [ninja][]            — build system similar to `make`
  * [ragel][]            — state machine compiler
- * [sparsehash][]       — a cache friendly `hash_map`
 
 All this can be installed using either [Homebrew][] or [MacPorts][]:
 
 ```sh
 # Homebrew
-brew install boost capnp google-sparsehash multimarkdown ninja ragel
+brew install capnp multimarkdown ninja ragel
 
 # MacPorts
-sudo port install boost capnproto multimarkdown ninja ragel sparsehash
+sudo port install capnproto multimarkdown ninja ragel
 ```
 
 After installing dependencies, make sure you have a full checkout (including submodules) and then run `./configure` followed by `ninja`, for example:
@@ -84,7 +82,6 @@ The source for TextMate is released under the GNU General Public License as publ
 
 TextMate is a trademark of Allan Odgaard.
 
-[boost]:         http://www.boost.org/
 [ninja]:         https://ninja-build.org/
 [multimarkdown]: http://fletcherpenney.net/multimarkdown/
 [ragel]:         http://www.complang.org/ragel/
@@ -92,6 +89,5 @@ TextMate is a trademark of Allan Odgaard.
 [MacPorts]:      http://www.macports.org/
 [Homebrew]:      http://brew.sh/
 [NinjaBundle]:   https://github.com/textmate/ninja.tmbundle
-[sparsehash]:    https://code.google.com/p/sparsehash/
 [#textmate]:     irc://irc.freenode.net/#textmate
 [freenode.net]:  http://freenode.net/
