@@ -24,7 +24,7 @@ typedef NS_ENUM(NSInteger, FFSearchTarget) {
 - (void)bringToFront;
 @end
 
-@interface Find : NSWindowController
+@interface Find : NSWindowController <NSEditor>
 @property (class, readonly) Find* sharedInstance;
 
 @property (nonatomic) FFSearchTarget searchTarget;
